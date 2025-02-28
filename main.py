@@ -1,33 +1,26 @@
 import os
+import sys
 import json
 from typing import Any, List
+sys.path.insert(1, os.path.abspath(os.path.join(os.path.dirname(__file__), './src')))
 
-from inference.core.interfaces.camera.entities import VideoFrame
 from inference import InferencePipeline
+from inference.core.interfaces.camera.entities import VideoFrame
 
+from base.config import object_detection_config
+from app.person_detection_roboflow_app import PersonDetectionRoboflowApp
 
-TARGET_DIR = "./my_predictions"
-class MyModel:
+def on_prediction(prediction: dict, video_frame: VideoFrame) -> None:
+    print(f"Prediction: {prediction}")  
 
-  def __init__(self, weights_path: str):
-    self._model = your_model_loader(weights_path)
-
-  # after v0.9.18  
-  def infer(self, video_frames: List[VideoFrame]) -> List[Any]: 
-    # result must be returned as list of elements representing model prediction for single frame
-    # with order unchanged.
-    return self._model([v.image for v in video_frames])
-
-def save_prediction(prediction: dict, video_frame: VideoFrame) -> None:
-  with open(os.path.join(TARGET_DIR, f"{video_frame.frame_id}.json")) as f:
-    json.dump(prediction, f)
-
-my_model = MyModel("./my_model.pt")
+person_detection_app = PersonDetectionRoboflowApp(
+    config=object_detection_config
+)
 
 pipeline = InferencePipeline.init_with_custom_logic(
   video_reference="./my_video.mp4",
-  on_video_frame=my_model.infer,
-  on_prediction=save_prediction,
+  on_video_frame=person_detection_app.infer,
+  on_prediction=on_prediction,
 )
 
 pipeline.start()

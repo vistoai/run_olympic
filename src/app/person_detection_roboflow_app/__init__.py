@@ -1,0 +1,1 @@
+from .person_detection_roboflow_app import PersonDetectionRoboflowApp
