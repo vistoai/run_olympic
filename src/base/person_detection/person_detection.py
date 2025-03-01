@@ -22,10 +22,12 @@ class PersonDetection:
     label_annotator: sv.LabelAnnotator = field(init=False, repr=False) 
 
     def __post_init__(self) -> None:
-
+        print(torch.cuda.is_available())
+        print(f"Device: {self.config['device']}")
         # Setup device variable
         if self.config["device"] == "gpu" and torch.cuda.is_available():
             device_ids = self.config["device_ids"].split(",")
+            print(f"Device IDs: {device_ids}")
             if len(device_ids) > 1:
                 self.device = []
                 for device_id in device_ids:
@@ -37,6 +39,8 @@ class PersonDetection:
         else:
             self.device = "cpu"
         
+        print(f"Device: {self.device}")
+
         # Supervision
         self.object_annotator = sv.BoxAnnotator()
         self.label_annotator = sv.LabelAnnotator()
