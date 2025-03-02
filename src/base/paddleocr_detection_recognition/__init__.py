@@ -1,0 +1,1 @@
+from .paddleocr_detection_recognition import PaddleOcrDetectionRecognition
