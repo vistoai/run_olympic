@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import numpy as np
 import supervision as sv
 
@@ -21,3 +23,15 @@ def filter_paddleocr_coordinate_to_person_detection_coordinate(
     
     filter_result = np.array(filter_result, dtype=bool)
     return filter_result
+
+def generate_id_based_on_datetime() -> str:
+    # Get the current time with microseconds
+    current_time = datetime.now()
+
+    # Format the time to include milliseconds (3 decimal places of microseconds)
+    current_time_str = current_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+
+    # Convert the formatted time string to an integer (milliseconds since epoch)
+    current_time_milliseconds = int(datetime.strptime(current_time_str, "%Y-%m-%d %H:%M:%S.%f").timestamp() * 1000)
+    
+    return current_time_milliseconds

@@ -3,6 +3,7 @@ import sys
 import json
 import time
 import random
+import subprocess
 from functools import partial
 from multiprocessing import Queue, Process
 from typing import Any, List, Optional, Union
@@ -22,10 +23,19 @@ from base.config import (
     person_detection_tracker_config, 
     paddleocr_detection_recognition_model_config
 )
-from base.utils import filter_paddleocr_coordinate_to_person_detection_coordinate
+from base.utils import (
+    filter_paddleocr_coordinate_to_person_detection_coordinate,
+    generate_id_based_on_datetime
+)
 from app.running_olympic_roboflow_app import RunningOlympicRoboflowApp
 
 load_dotenv()
+
+# Start the subprocess for recording
+script_recorder_path = 'subprocess_recorder.py'
+folder_recorded_image_path = 'media/recording_result_image'
+record_type = "dynamic"
+subprocess.Popen(['python3', script_recorder_path, folder_recorded_image_path, record_type])
 
 # Annotators
 box_annotator = sv.BoxAnnotator()
@@ -41,14 +51,17 @@ def on_prediction(
     
     print(f"Predictions: {len(predictions)}")
     print(f"Video Frame: {len(video_frame)}")
-    for prediction, v in zip(predictions, video_frame):
+    for idx, (prediction, v) in enumerate(zip(predictions, video_frame)):
         frame = v.image
         if prediction is None:
             continue
         
+        # Prepare the folder for the recording
+        new_folder_path = os.path.join(folder_recorded_image_path, f"inference_pipeline_{idx}")
+        os.makedirs(new_folder_path, exist_ok=True)
+
         # Get the prediction
         person_detection_prediction, ocr_prediction = prediction
-
         print("Person Detection Prediction")
         print(person_detection_prediction)
         print("Person Detection Prediction XYXY")
@@ -81,13 +94,18 @@ def on_prediction(
             labels=labels,
         )
 
-        cv2.imwrite(f"media/running_result_image/annotated_frame_{random.randint(1, 1000000)}.jpg", annotated_frame)
+        # Save the annotated frame with 50% quality
+        saved_image_name = f"{generate_id_based_on_datetime()}.jpg"
+        cv2.imwrite(
+            os.path.join(new_folder_path, saved_image_name), 
+            annotated_frame,
+            [
+                cv2.IMWRITE_JPEG_QUALITY, 50
+            ]
+        )
         
 
         
-
-
-    
 if __name__ == "__main__":
     running_olympic_roboflow_app = RunningOlympicRoboflowApp(
         person_detection_set_config=person_detection_set_config,

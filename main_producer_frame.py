@@ -5,8 +5,6 @@ import os
 import random
 import string
 
-
-
 def create_random_folder(base_path='media/recording_result_image'):
     folder_name = ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
     folder_path = os.path.join(base_path, folder_name)
